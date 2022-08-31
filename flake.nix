@@ -12,6 +12,9 @@
 
   outputs =
     { self, nixpkgs, crane, utils, ... }:
+    {
+      nixosModules.packaway = import ./nixos.nix self;
+    } //
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
