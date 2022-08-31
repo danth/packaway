@@ -2,6 +2,7 @@ extern crate anyhow;
 extern crate base64;
 extern crate ed25519_dalek;
 extern crate hex;
+extern crate nix_nar;
 extern crate rocket;
 extern crate sqlite;
 
@@ -16,7 +17,6 @@ use rocket::response::stream::ByteStream;
 
 use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Stdio};
 
 use crate::database::{StorePath, get_path_info, get_references};
 use crate::signature::Key;
@@ -104,35 +104,28 @@ impl<'r> FromParam<'r> for NarRequest {
 #[get("/nar/<path>")]
 #[allow(unused_must_use)]
 fn nar(path: NarRequest) -> Result<ByteStream![Vec<u8>], Status> {
-    let path = StorePath::new(&path.0);
+    let path = StorePath::new(&path.0).with_prefix();
+    let path = Path::new(&path);
 
-    if !Path::new(&path.with_prefix()).exists() {
+    if !path.exists() {
         return Err(Status::NotFound);
     }
 
-    let mut child = Command
-       ::new("nix-store")
-       .arg("--dump")
-       .arg(path.with_prefix())
-       .stdout(Stdio::piped())
-       .spawn()
-       .map_err(|_| Status::InternalServerError)?;
-
-    let mut stdout = child.stdout.take().unwrap();
+    let mut encoder = nix_nar::Encoder::new(path);
 
     Ok(ByteStream! {
         loop {
-            if let Some(exit_status) = child.try_wait().unwrap() {
-                if exit_status.success() {
-                    break;
-                } else {
-                    panic!("NAR generation failed");
-                }
-            }
+            // Stream chunks of no more than 10MiB
+            let mut buffer = vec![0; 1024 * 1024 * 10];
 
-            let mut bytes = Vec::new();
-            stdout.read_to_end(&mut bytes);
-            yield bytes;
+            let bytes_read = encoder.read(&mut buffer).unwrap();
+
+            if bytes_read > 0 {
+                buffer.truncate(bytes_read);
+                yield buffer;
+            } else {
+                break;
+            }
         }
     })
 }

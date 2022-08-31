@@ -32,8 +32,6 @@ in {
       NIX_SECRET_KEY_FILE = cfg.secretKey;
     };
 
-    path = [ config.nix.package ];
-
     serviceConfig = {
       ExecStart = "${self.packages.${pkgs.system}.default}/bin/packaway";
 
