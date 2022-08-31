@@ -42,7 +42,7 @@ pub struct PathInfo {
     pub path: StorePath,
     pub nar_hash: String,
     pub nar_size: i64,
-    pub deriver: StorePath
+    pub deriver: Option<StorePath>
 }
 
 pub fn get_path_info(hash: &str) -> anyhow::Result<Option<PathInfo>> {
@@ -60,7 +60,7 @@ pub fn get_path_info(hash: &str) -> anyhow::Result<Option<PathInfo>> {
             path: StorePath::new(&statement.read::<String>(1)?),
             nar_hash: nar_hash_to_base32(&statement.read::<String>(2)?)?,
             nar_size: statement.read::<i64>(3)?,
-            deriver: StorePath::new(&statement.read::<String>(4)?)
+            deriver: statement.read::<Option<String>>(4)?.map(|deriver| StorePath::new(&deriver))
         };
 
         // If no direct match was found, the query may return the next path in alphabetical order

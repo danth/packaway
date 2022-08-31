@@ -73,16 +73,28 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
             Status::InternalServerError
         })?;
 
-    let text = format!(
-        "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}",
-        path_info.path.with_prefix(),
-        base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
-        path_info.nar_hash,
-        path_info.nar_size,
-        references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(" "),
-        path_info.deriver.without_prefix(),
-        signature
-    );
+    let text = match path_info.deriver {
+        Some(deriver) => format!(
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}",
+            path_info.path.with_prefix(),
+            base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.nar_hash,
+            path_info.nar_size,
+            references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(" "),
+            deriver.without_prefix(),
+            signature
+        ),
+        None => format!(
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}",
+            path_info.path.with_prefix(),
+            base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.nar_hash,
+            path_info.nar_size,
+            references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(" "),
+            signature
+        )
+    };
+
     Ok(NarInfoResponse(text))
 }
 
