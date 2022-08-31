@@ -1,0 +1,12 @@
+[package]
+name = "packaway"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "^1.0"
+base64 = "^0.13"
+ed25519-dalek = "^1.0"
+hex = "^0.4"
+rocket = "0.5.0-rc.2"
+sqlite = "^0.27"
