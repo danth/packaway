@@ -12,8 +12,11 @@ mod signature;
 use rocket::{get, launch, routes, Responder};
 use rocket::http::Status;
 use rocket::request::FromParam;
+use rocket::response::stream::ByteStream;
 
-use std::process::Command;
+use std::io::Read;
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 use crate::database::{StorePath, get_path_info, get_references};
 use crate::signature::Key;
@@ -98,25 +101,40 @@ impl<'r> FromParam<'r> for NarRequest {
     }
 }
 
-#[derive(Responder)]
-#[response(content_type = "text/x-nix-nar")]
-struct NarResponse(String);
-
 #[get("/nar/<path>")]
-fn nar(path: NarRequest) -> Result<NarResponse, Status> {
+#[allow(unused_must_use)]
+fn nar(path: NarRequest) -> Result<ByteStream![Vec<u8>], Status> {
     let path = StorePath::new(&path.0);
 
-    let output = Command
+    if !Path::new(&path.with_prefix()).exists() {
+        return Err(Status::NotFound);
+    }
+
+    let mut child = Command
        ::new("nix-store")
        .arg("--dump")
        .arg(path.with_prefix())
-       .output()
+       .stdout(Stdio::piped())
+       .spawn()
        .map_err(|_| Status::InternalServerError)?;
 
-    // TODO: stream NAR responses
-    let nar = String::from_utf8_lossy(&output.stdout).to_string();
+    let mut stdout = child.stdout.take().unwrap();
 
-    Ok(NarResponse(nar))
+    Ok(ByteStream! {
+        loop {
+            if let Some(exit_status) = child.try_wait().unwrap() {
+                if exit_status.success() {
+                    break;
+                } else {
+                    panic!("NAR generation failed");
+                }
+            }
+
+            let mut bytes = Vec::new();
+            stdout.read_to_end(&mut bytes);
+            yield bytes;
+        }
+    })
 }
 
 #[launch]
