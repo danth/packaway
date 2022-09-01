@@ -75,9 +75,11 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
 
     let text = match path_info.deriver {
         Some(deriver) => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}\n",
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}\n",
             path_info.path.with_prefix(),
             base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.nar_hash,
+            path_info.nar_size,
             path_info.nar_hash,
             path_info.nar_size,
             references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(" "),
@@ -85,9 +87,11 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
             signature
         ),
         None => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}\n",
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}\n",
             path_info.path.with_prefix(),
             base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.nar_hash,
+            path_info.nar_size,
             path_info.nar_hash,
             path_info.nar_size,
             references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(" "),
