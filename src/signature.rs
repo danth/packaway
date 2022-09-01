@@ -39,7 +39,7 @@ impl Key {
             path_info.path.with_prefix(),
             path_info.nar_hash,
             path_info.nar_size,
-            references.iter().map(|r| r.without_prefix()).collect::<Vec<String>>().join(",")
+            references.iter().map(|r| r.with_prefix()).collect::<Vec<String>>().join(",")
         );
 
         let signature = self.key.sign(&fingerprint.as_bytes());

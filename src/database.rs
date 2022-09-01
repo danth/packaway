@@ -92,5 +92,8 @@ pub fn get_references(path_info: &PathInfo) -> anyhow::Result<Vec<StorePath>> {
         references.push(path);
     }
 
+    // Nix expects references in alphabetical order, especially for signatures
+    references.sort_by_key(|path| path.without_prefix());
+
     Ok(references)
 }
