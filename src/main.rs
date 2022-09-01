@@ -49,7 +49,7 @@ struct NarInfoResponse(String);
 
 #[get("/<hash>")]
 fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
-    let path_info = get_path_info(&hash.0)
+    let path_info = get_path_info(hash.0)
         .map_err(|error| {
             eprintln!("SQLite error: {}", error);
             Status::InternalServerError

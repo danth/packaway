@@ -42,7 +42,7 @@ impl Key {
             references.iter().map(|r| r.with_prefix()).collect::<Vec<String>>().join(",")
         );
 
-        let signature = self.key.sign(&fingerprint.as_bytes());
+        let signature = self.key.sign(fingerprint.as_bytes());
         let signature = base64::encode(signature.to_bytes());
 
         Ok(format!("{}:{}", self.name, signature))
