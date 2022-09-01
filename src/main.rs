@@ -27,7 +27,7 @@ struct CacheInfoResponse(&'static str);
 
 #[get("/nix-cache-info")]
 fn cache_info() -> CacheInfoResponse {
-    CacheInfoResponse("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 20")
+    CacheInfoResponse("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 20\n")
 }
 
 struct NarInfoRequest<'r>(&'r str);
@@ -75,7 +75,7 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
 
     let text = match path_info.deriver {
         Some(deriver) => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}",
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}\n",
             path_info.path.with_prefix(),
             base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
             path_info.nar_hash,
@@ -85,7 +85,7 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
             signature
         ),
         None => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}",
+            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}\n",
             path_info.path.with_prefix(),
             base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
             path_info.nar_hash,
