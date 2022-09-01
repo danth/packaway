@@ -2,11 +2,11 @@ extern crate anyhow;
 extern crate base64;
 extern crate ed25519_dalek;
 extern crate hex;
+extern crate nix_base32;
 extern crate nix_nar;
 extern crate rocket;
 extern crate sqlite;
 
-mod base32;
 mod database;
 mod signature;
 

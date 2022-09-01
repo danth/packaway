@@ -741,6 +741,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "nix-base32"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8548db8274cf1b2b4c093557783f99e9ad64ffdaaa29a6c1af0abc9895c15612"
+
+[[package]]
 name = "nix-nar"
 version = "0.2.0"
 source = "git+https://gitlab.com/abstract-binary/nix-nar-rs#bd0386db3a5cad206eef297739d23fa5051319ec"
@@ -788,6 +794,7 @@ dependencies = [
  "base64",
  "ed25519-dalek",
  "hex",
+ "nix-base32",
  "nix-nar",
  "rocket",
  "sqlite",

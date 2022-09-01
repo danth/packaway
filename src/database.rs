@@ -1,8 +1,6 @@
 // This module queries the Nix database directly to avoid spawning a subprocess for every request.
 // SQL statements based upon https://github.com/NixOS/nix/blob/ddb82ffda993d237d62d59578f7808a9d98c77fe/src/libstore/local-store.cc#L343-L412
 
-use crate::base32::nar_hash_to_base32;
-
 #[derive(Debug)]
 pub struct PrefixError;
 impl std::fmt::Display for PrefixError {
@@ -43,6 +41,12 @@ pub struct PathInfo {
     pub nar_hash: String,
     pub nar_size: i64,
     pub deriver: Option<StorePath>
+}
+
+fn nar_hash_to_base32(hash: &str) -> anyhow::Result<String> {
+    let bytes = hex::decode(&hash[7..])?;
+    let hash = nix_base32::to_nix_base32(&bytes);
+    Ok(format!("sha256:{}", hash))
 }
 
 pub fn get_path_info(hash: &str) -> anyhow::Result<Option<PathInfo>> {
