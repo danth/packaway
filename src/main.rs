@@ -75,9 +75,9 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
 
     let text = match path_info.deriver {
         Some(deriver) => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}\n",
+            "StorePath: {}\nURL: nar/{}\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nDeriver: {}\nSig: {}\n",
             path_info.path.with_prefix(),
-            base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.path.without_prefix(),
             path_info.nar_hash,
             path_info.nar_size,
             path_info.nar_hash,
@@ -87,9 +87,9 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
             signature
         ),
         None => format!(
-            "StorePath: {}\nURL: nar/{}.nar\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}\n",
+            "StorePath: {}\nURL: nar/{}\nCompression: none\nFileHash: {}\nFileSize: {}\nNarHash: {}\nNarSize: {}\nReferences: {}\nSig: {}\n",
             path_info.path.with_prefix(),
-            base64::encode_config(&path_info.path.without_prefix(), base64::URL_SAFE),
+            path_info.path.without_prefix(),
             path_info.nar_hash,
             path_info.nar_size,
             path_info.nar_hash,
@@ -102,25 +102,10 @@ fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
     Ok(NarInfoResponse(text))
 }
 
-struct NarRequest(String);
-impl<'r> FromParam<'r> for NarRequest {
-    type Error = &'r str;
-
-    fn from_param(param: &'r str) -> Result<Self, Self::Error> {
-        if let Some(encoded_path) = param.strip_suffix(".nar") {
-            if let Ok(path) = base64::decode_config(&encoded_path, base64::URL_SAFE) {
-                let path = String::from_utf8_lossy(&path).to_string();
-                return Ok(Self(path));
-            }
-        }
-        Err(param)
-    }
-}
-
 #[get("/nar/<path>")]
 #[allow(unused_must_use)]
-fn nar(path: NarRequest) -> Result<ByteStream![Vec<u8>], Status> {
-    let path = StorePath::new(&path.0).with_prefix();
+fn nar(path: &str) -> Result<ByteStream![Vec<u8>], Status> {
+    let path = StorePath::new(path).with_prefix();
     let path = Path::new(&path);
 
     if !path.exists() {
