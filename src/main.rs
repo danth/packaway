@@ -13,6 +13,7 @@ mod signature;
 use rocket::{get, launch, routes, Responder};
 use rocket::http::Status;
 use rocket::request::FromParam;
+use rocket::response::Body;
 use rocket::response::stream::ByteStream;
 
 use std::io::Read;
@@ -116,14 +117,22 @@ fn nar(path: &str) -> Result<ByteStream![Vec<u8>], Status> {
 
     Ok(ByteStream! {
         loop {
-            // Stream chunks of no more than 10MiB
-            let mut buffer = vec![0; 1024 * 1024 * 10];
+            let mut total_bytes_read = 0;
+            let mut chunk = vec![0; Body::DEFAULT_MAX_CHUNK];
 
-            let bytes_read = encoder.read(&mut buffer).unwrap();
+            // encoder.read returns a maximum of one operation per call. This becomes inefficient
+            // when there are lots of small files to encode. To mitigate this, we repeatedly call
+            // encoder.read until we have a full chunk.
+            while total_bytes_read < Body::DEFAULT_MAX_CHUNK {
+                match encoder.read(&mut chunk[total_bytes_read..]).unwrap() {
+                    0 => break,
+                    bytes_read => total_bytes_read += bytes_read
+                }
+            }
 
-            if bytes_read > 0 {
-                buffer.truncate(bytes_read);
-                yield buffer;
+            if total_bytes_read > 0 {
+                chunk.truncate(total_bytes_read);
+                yield chunk;
             } else {
                 break;
             }
