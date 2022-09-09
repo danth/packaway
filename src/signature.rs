@@ -25,7 +25,7 @@ impl Key {
         let path = env::var("NIX_SECRET_KEY_FILE")?;
         let text = fs::read_to_string(&path)?;
 
-        let (name, encoded_bytes) = text.split_once(':').ok_or(KeyFormatError)?;
+        let (name, encoded_bytes) = text.trim().split_once(':').ok_or(KeyFormatError)?;
 
         let bytes = base64::decode(encoded_bytes).map_err(|_| KeyFormatError)?;
         let key = Keypair::from_bytes(&bytes).map_err(|_| KeyFormatError)?;
