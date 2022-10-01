@@ -5,7 +5,7 @@ extern crate hex;
 extern crate nix_base32;
 extern crate nix_nar;
 extern crate rocket;
-extern crate sqlite;
+extern crate rocket_db_pools;
 
 mod database;
 mod signature;
@@ -16,10 +16,12 @@ use rocket::request::FromParam;
 use rocket::response::Body;
 use rocket::response::stream::ByteStream;
 
+use rocket_db_pools::{Connection, Database};
+
 use std::io::Read;
 use std::path::Path;
 
-use crate::database::{StorePath, get_path_info, get_references};
+use crate::database::{Db, StorePath, get_path_info, get_references};
 use crate::signature::Key;
 
 #[derive(Responder)]
@@ -49,15 +51,17 @@ impl<'r> FromParam<'r> for NarInfoRequest<'r> {
 struct NarInfoResponse(String);
 
 #[get("/<hash>")]
-fn nar_info(hash: NarInfoRequest) -> Result<NarInfoResponse, Status> {
-    let path_info = get_path_info(hash.0)
+async fn nar_info(mut db: Connection<Db>, hash: NarInfoRequest<'_>) -> Result<NarInfoResponse, Status> {
+    let path_info = get_path_info(&mut db, hash.0)
+        .await
         .map_err(|error| {
             eprintln!("SQLite error: {}", error);
             Status::InternalServerError
         })?
         .ok_or(Status::NotFound)?;
 
-    let references = get_references(&path_info)
+    let references = get_references(&mut db, &path_info)
+        .await
         .map_err(|error| {
             eprintln!("SQLite error: {}", error);
             Status::InternalServerError
@@ -142,5 +146,7 @@ fn nar(path: &str) -> Result<ByteStream![Vec<u8>], Status> {
 
 #[launch]
 fn launch() -> _ {
-    rocket::build().mount("/", routes![cache_info, nar_info, nar])
+    rocket::build()
+        .attach(Db::init())
+        .mount("/", routes![cache_info, nar_info, nar])
 }

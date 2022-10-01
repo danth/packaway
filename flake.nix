@@ -23,6 +23,15 @@
         commonArguments = rec {
           src = ./.;
           cargoArtifacts = craneLib.buildDepsOnly { inherit src; };
+
+          # Create a temporary Nix database to prepare queries against
+          preConfigure = ''
+            ${pkgs.nix}/bin/nix \
+              --experimental-features nix-command \
+              --store /tmp/nix \
+              store ping
+          '';
+          DATABASE_URL = "sqlite:/tmp/nix/nix/var/nix/db/db.sqlite";
         };
 
       in {

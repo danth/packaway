@@ -29,6 +29,7 @@ in {
 
     environment = {
       ROCKET_PORT = "19082";
+      ROCKET_DATABASES = ''{ nix = { url = "/nix/var/nix/db/db.sqlite" } }'';
       NIX_SECRET_KEY_FILE = cfg.secretKey;
     };
 
