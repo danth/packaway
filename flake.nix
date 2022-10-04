@@ -21,7 +21,8 @@
         craneLib = crane.lib.${system};
 
         commonArguments = rec {
-          src = ./.;
+          src = craneLib.cleanCargoSource ./.;
+
           cargoArtifacts = craneLib.buildDepsOnly { inherit src; };
 
           # Create a temporary Nix database to prepare queries against
