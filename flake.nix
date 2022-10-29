@@ -14,6 +14,7 @@
     { self, nixpkgs, crane, utils, ... }:
     {
       nixosModules.packaway = import ./nixos.nix self;
+      hydraJobs.packaway = self.packages.x86_64-linux.default;
     } //
     utils.lib.eachDefaultSystem (system:
       let
@@ -34,17 +35,8 @@
           '';
           DATABASE_URL = "sqlite:/tmp/nix/nix/var/nix/db/db.sqlite";
         };
-
       in {
         packages.default = craneLib.buildPackage commonArguments;
-
-        checks.clippy = craneLib.cargoClippy (commonArguments // {
-          cargoClippyExtraArgs = "-- --deny warnings";
-        });
-
-        devShells.default = with pkgs; mkShell {
-          nativeBuildInputs = [ cargo ];
-        };
       }
     );
 }
