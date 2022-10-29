@@ -6,5 +6,5 @@ pub struct CacheInfoResponse(&'static str);
 
 #[get("/nix-cache-info")]
 pub fn get_cache_info() -> CacheInfoResponse {
-    CacheInfoResponse("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 20\n")
+    CacheInfoResponse("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 50\n")
 }
