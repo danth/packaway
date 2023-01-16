@@ -928,8 +928,8 @@ checksum = "8548db8274cf1b2b4c093557783f99e9ad64ffdaaa29a6c1af0abc9895c15612"
 
 [[package]]
 name = "nix-nar"
-version = "0.2.0"
-source = "git+https://gitlab.com/abstract-binary/nix-nar-rs#bd0386db3a5cad206eef297739d23fa5051319ec"
+version = "0.2.1"
+source = "git+https://gitlab.com/abstract-binary/nix-nar-rs#c7e82b2544a8fe35d08551959be1e95ba48eb7fb"
 dependencies = [
  "is_executable",
  "thiserror",
